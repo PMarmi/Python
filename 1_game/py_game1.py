@@ -25,7 +25,7 @@ puntos = 0
 tiempo_passado = 0
 tiempo_passado_i = 0
 tiempo_entre_enemigos = 400
-tiempo_entre_enemigos_base = 1000
+tiempo_entre_enemigos_base = 7500
 
 cubo = Cubo((ANCHO/2),ALTO-125)
 enemigos = []
@@ -33,7 +33,7 @@ balas = []
 items = []
 ultima_bala = 0
 tiempo_entre_balas = 500
-tiempo_entre_items = 10000
+tiempo_entre_items = 1000
 
 enemigos.append(Enemigo(ANCHO/2, 100))
 items.append(Item(ANCHO/2, 100))
@@ -41,14 +41,13 @@ def crear_bala():
     global ultima_bala
     
     if pygame.time.get_ticks() - ultima_bala > tiempo_entre_balas:
-        balas.append(Bala(cubo.rect.centerx,cubo.rect.centery))
+        balas.append(Bala(cubo.rect.centerx + 20,(860)))
         ultima_bala = pygame.time.get_ticks()
         SONIDO_DISPARO.play()
         
-        
+w_presionada = False
+
 def gestionar_teclas(teclas):
-    # if teclas[pygame.K_w]:
-    #     cubo.y -= cubo.velocidad
     # if teclas[pygame.K_s]:
     #     cubo.y += cubo.velocidad
     if teclas[pygame.K_d]:
@@ -57,8 +56,11 @@ def gestionar_teclas(teclas):
         cubo.x -= cubo.velocidad
     if teclas[pygame.K_SPACE]:
         crear_bala()
-        
-        
+    global w_presionada
+    w_presionada = teclas[pygame.K_w]
+
+    
+
         
 while jugando and vida > 0:
     tiempo_passado += reloj.tick(FPS)
@@ -92,8 +94,10 @@ while jugando and vida > 0:
     cubo.dibujar(VENTANA)    
     
     for enemigo in enemigos:
+        enemigo.actualizar_velocidad(puntos,w_presionada)
         enemigo.dibujar(VENTANA)
         enemigo.movimiento()
+        
         
         if pygame.Rect.colliderect(cubo.rect,enemigo.rect):
             vida -= 1
@@ -114,7 +118,7 @@ while jugando and vida > 0:
                 enemigo.vida -= resultado
                 balas.remove(bala)
                 puntos += 1
-                
+              
         if enemigo.vida <= 0:
             SONIDO_MUERTE.play()
             enemigos.remove(enemigo)
@@ -135,10 +139,17 @@ while jugando and vida > 0:
             if item.tipo == 1:
                 if tiempo_entre_balas >= 250:
                     tiempo_entre_balas -= 50
-                    
-            elif item.tipo == 2:
-                if cubo.velocidad <= 22:
+                    print(tiempo_entre_balas)
+            if item.tipo == 2:
+                if cubo.velocidad <= 28:
                     cubo.velocidad += 2
+                    print(cubo.velocidad)
+                    
+            if item.tipo == 3:
+                if vida <= 6:
+                    vida += 1
+                    print(vida)
+                
         if item.y > ALTO:
             items.remove(item)
         
