@@ -18,14 +18,13 @@ SONIDO_MUERTE = pygame.mixer.Sound('/python/1_game/audio/zombie-death.mp3')
 
 jugando = True
 reloj = pygame.time.Clock()
-
 vida = 5
-puntos = 0
+puntos = 0 
 
 tiempo_passado = 0
 tiempo_passado_i = 0
 tiempo_entre_enemigos = 400
-tiempo_entre_enemigos_base = 7500
+tiempo_entre_enemigos_base = 1000
 
 cubo = Cubo((ANCHO/2),ALTO-125)
 enemigos = []
@@ -33,7 +32,7 @@ balas = []
 items = []
 ultima_bala = 0
 tiempo_entre_balas = 500
-tiempo_entre_items = 1000
+tiempo_entre_items = 7500
 
 enemigos.append(Enemigo(ANCHO/2, 100))
 items.append(Item(ANCHO/2, 100))
@@ -51,9 +50,11 @@ def gestionar_teclas(teclas):
     # if teclas[pygame.K_s]:
     #     cubo.y += cubo.velocidad
     if teclas[pygame.K_d]:
-        cubo.x += cubo.velocidad
+        if cubo.x + cubo.ancho <= ANCHO:
+            cubo.x += cubo.velocidad
     if teclas[pygame.K_a]:
-        cubo.x -= cubo.velocidad
+        if cubo.x >= 0:
+            cubo.x -= cubo.velocidad
     if teclas[pygame.K_SPACE]:
         crear_bala()
     global w_presionada
@@ -85,10 +86,12 @@ while jugando and vida > 0:
 
     
     gestionar_teclas(teclas)
-    
+
     for evento in eventos:  
         if evento.type == pygame.QUIT:
             jugando = False
+            pygame.quit()
+
             
     VENTANA.fill("black")
     cubo.dibujar(VENTANA)    
@@ -107,21 +110,21 @@ while jugando and vida > 0:
         
         
         if enemigo.y > ALTO:
-            puntos += 1
+            puntos += 3
             enemigos.remove(enemigo)
         opciones = [1, 2, 3]
-        probabilidades = [80, 15, 5]
+        probabilidades = [45, 45, 10]
         
         for bala in balas:
             if pygame.Rect.colliderect(bala.rect,enemigo.rect):
                 resultado = random.choices(opciones, probabilidades)[0]
                 enemigo.vida -= resultado
                 balas.remove(bala)
-                puntos += 1
               
         if enemigo.vida <= 0:
             SONIDO_MUERTE.play()
             enemigos.remove(enemigo)
+            puntos += 5
    
     for bala in balas:
         bala.dibujar(VENTANA)
