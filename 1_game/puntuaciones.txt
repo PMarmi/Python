@@ -1,6 +1,0 @@
-& C:/Users/pauma/AppData/Local/Programs/Python/Python312/python.exe c:/Python/1_game/py_game1.py - 0
-& C:/Users/pauma/AppData/Local/Programs/Python/Python312/python.exe c:/Python/1_game/py_game1.py - 24
-a - 13
-& C:/Users/pauma/AppData/Local/Programs/Python/Python312/python.exe c:/Python/1_game/py_game1.py - 215
-PAu - 5204
-& C:/Users/pauma/AppData/Local/Programs/Python/Python312/python.exe c:/Python/1_game/py_game1.py - 110
