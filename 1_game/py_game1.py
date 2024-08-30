@@ -230,7 +230,7 @@ while jugando and vida > 0:
     texto_vida = FUENTE.render(f"Vidas: {vida}", True, "white")
     texto_puntos = FUENTE.render(f"Puntos: {puntos}", True, "white")
     VENTANA.blit(texto_vida, (20, 20))
-    VENTANA.blit(texto_puntos, (ANCHO - 150, 20))
+    VENTANA.blit(texto_puntos, (ANCHO - 175, 20))
 
     pygame.display.update()
 
