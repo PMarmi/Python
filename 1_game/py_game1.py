@@ -197,8 +197,8 @@ while jugando and vida > 0:
         for bala in balas:
             if pygame.Rect.colliderect(bala.rect, enemigo.rect):
                 resultado = random.choices(opciones, probabilidades)[0]
-                enemigo.vida -= resultado
                 balas.remove(bala)
+                enemigo.vida -= resultado
 
         if enemigo.vida <= 0:
             SONIDO_MUERTE.play()
