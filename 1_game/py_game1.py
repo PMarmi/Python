@@ -112,7 +112,7 @@ def mostrar_fin_juego():
 
         pygame.display.update()
 
-    with open('1_game/puntuaciones.txt', 'a') as archivo:
+    with open('puntuaciones.txt', 'a') as archivo:
         archivo.write(f"{nombre} - {puntos}\n")
 
     pygame.quit()
