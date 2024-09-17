@@ -165,7 +165,7 @@ def main():
 
             pygame.display.update()
 
-        with open('puntuaciones.txt', 'a') as archivo:
+        with open('games/puntuaciones.txt', 'a') as archivo:
             archivo.write(f"{nombre} - {puntos}\n")
 
         mostrar_menu_final()
