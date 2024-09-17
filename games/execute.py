@@ -12,8 +12,8 @@ ALTO = 1000
 VENTANA = pygame.display.set_mode([ANCHO, ALTO])
 FPS = 60
 FUENTE = pygame.font.SysFont("Comic Sans", 24)  # Tamaño de fuente reducido para adaptarse mejor
-SONIDO_DISPARO = pygame.mixer.Sound('audio/bala.mp3')
-SONIDO_MUERTE = pygame.mixer.Sound('audio/zombie-death.mp3')
+SONIDO_DISPARO = pygame.mixer.Sound('games/audio/bala.mp3')
+SONIDO_MUERTE = pygame.mixer.Sound('games/audio/zombie-death.mp3')
 
 def main():
     reloj = pygame.time.Clock()
@@ -82,19 +82,56 @@ def main():
 
     def mostrar_menu():
         VENTANA.fill("black")
-        fondo_menu = pygame.image.load('img/fondoMenu.jpg')
+        fondo_menu = pygame.image.load('games/img/fondoMenu.jpg')
         fondo_menu = pygame.transform.scale(fondo_menu, (ANCHO, ALTO))
         VENTANA.blit(fondo_menu, (0, 0))
 
         texto_titulo = FUENTE.render("Mi Juego", True, "white")
         texto_iniciar = FUENTE.render("Presiona ENTER para empezar", True, "white")
         texto_salir = FUENTE.render("Presiona ESC para salir", True, "white")
+        texto_instrucciones = FUENTE.render("Presiona I para instrucciones", True, "white")
 
         VENTANA.blit(texto_titulo, (ANCHO/2 - texto_titulo.get_width()/2, ALTO/2 - 150))
         VENTANA.blit(texto_iniciar, (ANCHO/2 - texto_iniciar.get_width()/2, ALTO/2 - 50))
         VENTANA.blit(texto_salir, (ANCHO/2 - texto_salir.get_width()/2, ALTO/2 + 50))
+        VENTANA.blit(texto_instrucciones, (ANCHO/2 - texto_instrucciones.get_width()/2, ALTO/2 + 150))
 
         pygame.display.update()
+
+    def mostrar_instrucciones():
+        VENTANA.fill("black")
+
+        # Mensaje dividido en líneas
+        instrucciones = [
+            "Instrucciones del Juego",
+            "",
+            "Usa las teclas 'A' y 'D' para mover tu personaje.",
+            "Presiona 'ESPACIO' para disparar.",
+            "Esquiva los zombies y mata los que puedas.",
+            "Cada zombie que matas te da puntos.",
+            "Recoge items para mejorar tu personaje.",
+            "",
+            "Presiona M para volver al menú."
+        ]
+
+        # Renderizar cada línea de texto y mostrarla en la pantalla
+        y_offset = ALTO / 2 - len(instrucciones) * 30 / 2
+        for linea in instrucciones:
+            texto = FUENTE.render(linea, True, "white")
+            VENTANA.blit(texto, (ANCHO/2 - texto.get_width()/2, y_offset))
+            y_offset += 30
+
+        pygame.display.update()
+
+        while True:
+            for evento in pygame.event.get():
+                if evento.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+                if evento.type == pygame.KEYDOWN:
+                    if evento.key == pygame.K_m:
+                        return
 
     def mostrar_fin_juego():
         nonlocal jugando
@@ -197,6 +234,8 @@ def main():
                 jugando = False
                 pygame.quit()
                 quit()
+            if teclas[pygame.K_i]:
+                mostrar_instrucciones()
 
         if ESTADO_JUEGO == "JUGANDO":
             tiempo_passado = 0
@@ -217,33 +256,91 @@ def main():
                     if evento.type == pygame.QUIT:
                         jugando = False
                         pygame.quit()
-                        quit()
 
                 gestionar_teclas(teclas)
-                if teclas[pygame.K_c]:
-                    ESTADO_JUEGO = "PAUSA"
 
-                # Crear enemigos y actualizar balas, enemigos, etc.
-                # Falta agregar aquí las colisiones, la lógica de enemigos, y más
+                if ESTADO_JUEGO == "PAUSA":
+                    mostrar_pantalla_pausa()
+                    if teclas[pygame.K_c]:
+                        reanudar_con_contador()
+                    continue
 
-                # Rellenar pantalla y mostrar vidas, puntos
-                pygame.display.flip()
-                reloj.tick(FPS)
+                tiempo_passado += reloj.tick(FPS)
+                tiempo_passado_i += reloj.tick(FPS)
 
-        if ESTADO_JUEGO == "PAUSA":
-            mostrar_pantalla_pausa()
-            eventos = pygame.event.get()
-            teclas = pygame.key.get_pressed()
+                actualizar_dificultad(puntos)
 
-            for evento in eventos:
-                if evento.type == pygame.QUIT:
-                    jugando = False
-                    pygame.quit()
+                if tiempo_passado > tiempo_entre_enemigos:
+                    enemigos.append(Enemigo(random.randint(0, ANCHO), -50))
+                    tiempo_passado = 0
+                    tiempo_entre_enemigos = random.randint(50, tiempo_entre_enemigos_base)
+                    if tiempo_entre_enemigos_base > 600:
+                        tiempo_entre_enemigos_base -= 20
 
-            if teclas[pygame.K_c]:
-                reanudar_con_contador()
+                if tiempo_passado_i > tiempo_entre_items:
+                    items.append(Item(random.randint(0, ANCHO), -50))
+                    tiempo_passado_i = 0
 
-        if vida <= 0:
+                VENTANA.fill("black")
+                cubo.dibujar(VENTANA)
+
+                for enemigo in enemigos:
+                    enemigo.actualizar_velocidad(puntos, w_presionada)
+                    enemigo.dibujar(VENTANA)
+                    enemigo.movimiento()
+
+                    if pygame.Rect.colliderect(cubo.rect, enemigo.rect):
+                        vida -= 1
+                        SONIDO_MUERTE.play()
+                        enemigos.remove(enemigo)
+
+                    if enemigo.y > ALTO:
+                        puntos += 3
+                        enemigos.remove(enemigo)
+
+                    opciones = [1, 2, 3]
+                    probabilidades = [30, 55, 15]
+
+                    for bala in balas:
+                        if pygame.Rect.colliderect(bala.rect, enemigo.rect):
+                            resultado = random.choices(opciones, probabilidades)[0]
+                            balas.remove(bala)
+                            enemigo.vida -= resultado
+
+                        if enemigo.vida <= 0:
+                            SONIDO_MUERTE.play()
+                            enemigos.remove(enemigo)
+                            puntos += 5
+
+                for bala in balas:
+                    bala.dibujar(VENTANA)
+                    bala.movimiento()
+                    if bala.y < 0:
+                        balas.remove(bala)
+
+                for item in items:
+                    item.dibujar(VENTANA)
+                    item.movimiento()
+
+                    if pygame.Rect.colliderect(item.rect, cubo.rect):
+                        items.remove(item)
+                        if item.tipo == 1 and tiempo_entre_balas >= 250:
+                            tiempo_entre_balas -= 50
+                        if item.tipo == 2 and cubo.velocidad <= 28:
+                            cubo.velocidad += 2
+                        if item.tipo == 3 and vida <= 6:
+                            vida += 1
+
+                    if item.y > ALTO:
+                        items.remove(item)
+
+                texto_vida = FUENTE.render(f"Vidas: {vida}", True, "white")
+                texto_puntos = FUENTE.render(f"Puntos: {puntos}", True, "white")
+                VENTANA.blit(texto_vida, (20, 20))
+                VENTANA.blit(texto_puntos, (ANCHO - 175, 20))
+
+                pygame.display.update()
+
             mostrar_fin_juego()
 
 if __name__ == "__main__":
