@@ -1,7 +1,7 @@
 from entidad import Entidad
 class Enemigo(Entidad):
     def __init__(self, x, y):
-        super().__init__(x, y, 65, 65, 3, "games/img/enemigo.png")
+        super().__init__(x, y, 65, 65, 3, "img/enemigo.png")
         self.vida = 3
     
     def movimiento(self):
@@ -30,6 +30,6 @@ class Enemigo(Entidad):
         elif puntos >= 30:
             self.velocidad = 12
         else:
-            self.velocidad = 7
+            self.velocidad = 9
         if w_presionada:
             self.velocidad *= 2
